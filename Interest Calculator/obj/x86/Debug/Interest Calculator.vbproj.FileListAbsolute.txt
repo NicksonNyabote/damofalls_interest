@@ -1,0 +1,10 @@
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\bin\Debug\Interest Calculator.exe
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\bin\Debug\Interest Calculator.pdb
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\bin\Debug\Interest Calculator.xml
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\obj\x86\Debug\WindowsApplication1.Form1.resources
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\obj\x86\Debug\WindowsApplication1.Resources.resources
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\obj\x86\Debug\Interest Calculator.vbproj.GenerateResource.Cache
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\obj\x86\Debug\Interest Calculator.exe
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\obj\x86\Debug\Interest Calculator.xml
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\obj\x86\Debug\Interest Calculator.pdb
+C:\Users\Nickson\documents\visual studio 2010\Projects\Interest Calculator\Interest Calculator\bin\Debug\Interest Calculator.exe.config
