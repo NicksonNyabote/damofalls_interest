@@ -317,6 +317,17 @@ SET ANSI_PADDING OFF
 GO
 
 
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_InterestPost]    Script Date: 7/30/2020 10:51:25 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
 
 
 
@@ -489,15 +500,17 @@ CREATE Procedure [dbo].[SpInsertStagingPostAR_InterestPost]
 
 GO
 
+
 USE [DAMOFALLS INVESTMENTS]
 GO
 
-/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_Penalt]    Script Date: 7/29/2020 1:53:16 PM ******/
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_Penalt]    Script Date: 7/30/2020 10:51:47 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 
@@ -653,7 +666,7 @@ BEGIN
   
    Declare @StartDate date --Start calculating penalt on this date
   set  @StartDate=coalesce(
-                   @start_date
+                   dateadd(day,1,@start_date)
                   ,(SELECT dateadd(day,1,MAX(TxDate)) FROM [dbo].[StagingPostAR] where lower(Description) like '%penalt%')
 				  ,(SELECT min(TxDate) FROM [dbo].[StagingPostAR]))
 
@@ -675,7 +688,7 @@ BEGIN
 			   where TxDate between @start_date and @tdate)
   set @Cbal=(select SUM(Debit-Credit) FROM [dbo].[StagingPostAR])
   set  @IntrestTot=case when @Cbal is null or @Cbal<=0  or @paid>=@thresh then 0
-                  else @Cbal*(@prate/36500) end
+                  else @Cbal*(@prate/100) end
 
 
  INSERT INTO [dbo].[StagingPostARInterest]
@@ -804,13 +817,14 @@ DEALLOCATE @getid
 
 
 
+
 GO
 
 
 USE [DAMOFALLS INVESTMENTS]
 GO
 
-/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_SingleInterestNew]    Script Date: 7/29/2020 1:53:43 PM ******/
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_SingleInterestNew]    Script Date: 7/30/2020 10:52:07 AM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -972,328 +986,7 @@ BEGIN
 
   Declare @StartDate date --Start calculating interest on this date
   set  @StartDate=coalesce(
-                   @start_date
-                  ,(SELECT dateadd(day,1,MAX(TxDate)) FROM [dbo].[StagingPostAR] where lower(Description) like '%interest%')
-				  ,(SELECT min(TxDate) FROM [dbo].[StagingPostAR]))
-
- Declare @IntrestTot float --Total Interest
- set @IntrestTot=0
- 
- Declare @CurInterest float --Interest for current day
- set @CurInterest=0
-
- Declare @Cbal float --Balance as at current day
- set @Cbal=0
-
- DECLARE @Project int
- SELECT @Project=Project FROM [dbo].[StagingPostAR] WHERE Project<>0
-
-WHILE (@StartDate is not null and @StartDate <= @tdate)
-BEGIN
-  set @Cbal=@IntrestTot+(select SUM(Debit-Credit) FROM [dbo].[StagingPostAR] where TxDate<=@StartDate)
-  set  @CurInterest=case when @Cbal is null or @Cbal<=0 then 0
-                  else @Cbal*(@irate/36500) end
-  set @IntrestTot= case when @CurInterest>0 then @IntrestTot+@CurInterest
-                else @IntrestTot end
-  set @StartDate=dateadd(day,1,@StartDate)
-END
-  
- 
-
- INSERT INTO [dbo].[StagingPostARInterest]
-	(
-       [TxDate]
-      ,[Id]
-      ,[AccountLink]
-      ,[TrCodeID]
-      ,Debit
-      ,[Credit]
-      ,[iCurrencyID]
-      ,[fExchangeRate]
-      ,[fForeignDebit]
-      ,[fForeignCredit]
-      ,[Description]
-      ,[TaxTypeID]
-      ,[Reference]
-      ,[Order_No]
-      ,[ExtOrderNum]
-      ,[cAuditNumber]
-      ,[Tax_Amount]
-      ,[fForeignTax]
-      ,[Project]
-      ,[Outstanding]
-      ,[fForeignOutstanding]
-      ,[cAllocs]
-      ,[InvNumKey]
-      ,[RepID]
-      ,[LinkAccCode]
-      ,[TillID]
-      ,[CRCCheck]
-      ,[DTStamp]
-      ,[UserName]
-      ,[iTaxPeriodID]
-      ,[cReference2]
-      ,[fJCRepCost]
-      ,[iAge]
-      ,[dDateAged]
-      ,[iPostSettlementTermsID]
-      ,[PostAR_iBranchID]
-      ,[PostAR_dCreatedDate]
-      ,[PostAR_dModifiedDate]
-      ,[PostAR_iCreatedBranchID]
-      ,[PostAR_iModifiedBranchID]
-      ,[PostAR_iCreatedAgentID]
-      ,[PostAR_iModifiedAgentID]
-      ,[iTxBranchID]
-      ,[PostAR_iChangeSetID]
-      ,[iMBPropertyID]
-      ,[iMBPortionID]
-      ,[iMBServiceID]
-      ,[iMBMeterID]
-      ,[iMBPropertyPortionServiceID]
-      ,[bPBTPaid]
-      ,[iGLTaxAccountID]
-	)	
-  SELECT top 1
-       @tdate as TxDate
-      ,'ARTx' as Id
-      ,@AccountLink as AccountLink
-      ,11 as TrCodeID
-      ,@IntrestTot as Debit
-	  ,0 as Credit
-      ,0 as iCurrencyID --********
-      ,1 as fExchangeRate --********
-      ,@IntrestTot fForeignDebit --********
-	  ,0 as fForeignCredit
-      ,'Interest Calculated' as Description
-      ,0 as TaxTypeID
-      ,'TestInterest'+CONVERT(varchar, @tdate ,103) as Reference
-      ,'CI'+CONVERT(varchar, @tdate ,103) as Order_No
-      ,'CI'+CONVERT(varchar, @tdate ,103) as ExtOrderNum
-      ,'CI'+CONVERT(varchar, @tdate ,103) as cAuditNumber
-      ,0 as Tax_Amount
-      ,0 as fForeignTax
-      ,@Project as Project
-      ,@IntrestTot as Outstanding
-	  ,@IntrestTot as fForeignOutstanding --********
-	  ,null as cAllocs
-      ,0 as InvNumKey --********
-
-      ,0 as RepID
-      ,0 as LinkAccCode
-      ,0 as TillID
-      ,null as CRCCheck
-      ,getdate() as [DTStamp]
-      ,'Admin' as [UserName]
-      ,null as [iTaxPeriodID]
-      ,null as [cReference2]
-      ,0 as [fJCRepCost]
-      ,0 as [iAge]
-      ,@tdate as [dDateAged]
-      ,0 as [iPostSettlementTermsID]
-      ,0 as [PostAR_iBranchID]
-      ,null as [PostAR_dCreatedDate]
-      ,null as [PostAR_dModifiedDate]
-      ,null as [PostAR_iCreatedBranchID]
-      ,null as [PostAR_iModifiedBranchID]
-      ,null as [PostAR_iCreatedAgentID]
-      ,null as [PostAR_iModifiedAgentID]
-      ,0 as [iTxBranchID]
-      ,null as [PostAR_iChangeSetID]
-      ,0 as [iMBPropertyID]
-      ,0 as [iMBPortionID]
-      ,0 as [iMBServiceID]
-      ,0 as [iMBMeterID]
-      ,0 as [iMBPropertyPortionServiceID]
-      ,0 as [bPBTPaid]
-      ,0 as iGLTaxAccountID
-  FROM (select 1  as dd) as result
-  where @IntrestTot<>0 and concat(@AccountLink,'TestInterest'+CONVERT(varchar, @tdate ,103)) not in(select concat(AccountLink,Reference) 
-                                              from PostAR
-											  where concat(AccountLink,Reference) is not null
-											  and AccountLink in (select distinct AccountLink from StagingPostAR))
-
-  
-   FETCH NEXT
-   FROM @getid INTO @cid
-   END
-
-CLOSE @getid
-DEALLOCATE @getid
- 
-
-
-
-
-
-GO
-
-USE [DAMOFALLS INVESTMENTS]
-GO
-
-/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_SingleInterestNew]    Script Date: 7/29/2020 1:53:43 PM ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-
-
-
-
-
-
-
-
-CREATE Procedure [dbo].[SpInsertStagingPostAR_SingleInterestNew]
-	(
-	 
-	@start_acc NVARCHAR(100), -- account start of range
-	@end_acc NVARCHAR(100),   -- account end of range
-	@start_date date,         -- interest charging starting date 
-	@tdate	date,             -- date of interest
-	@irate  float,            -- interest rate % per anum
-	@period int,              -- interest period
-	@cracc int                -- account to be credited with interest amount
-	)
-	AS
-
-Declare @AccountLink int -- account to calculate interest on
-DECLARE @cid INT
-DECLARE @getid CURSOR
-
-
-DELETE FROM [dbo].[StagingPostARInterest]
-DELETE FROM [dbo].[StagingPostARInterestVat]
-
-SET @getid = CURSOR FOR
-    SELECT DCLink
-    FROM   [dbo].Client
-    where Account between @start_acc and @end_acc
-OPEN @getid
-  FETCH NEXT
-  FROM @getid INTO @cid
-WHILE @@FETCH_STATUS = 0
-BEGIN
-    set @AccountLink=@cid
-	DELETE FROM [dbo].[StagingPostAR]
-	
-	INSERT INTO [dbo].[StagingPostAR]
-	(
-       [TxDate]
-      ,[Id]
-      ,[AccountLink]
-      ,[TrCodeID]
-      ,[Debit]
-      ,[Credit]
-      ,[iCurrencyID]
-      ,[fExchangeRate]
-      ,[fForeignDebit]
-      ,[fForeignCredit]
-      ,[Description]
-      ,[TaxTypeID]
-      ,[Reference]
-      ,[Order_No]
-      ,[ExtOrderNum]
-      ,[cAuditNumber]
-      ,[Tax_Amount]
-      ,[fForeignTax]
-      ,[Project]
-      ,[Outstanding]
-      ,[fForeignOutstanding]
-      ,[cAllocs]
-      ,[InvNumKey]
-      ,[RepID]
-      ,[LinkAccCode]
-      ,[TillID]
-      ,[CRCCheck]
-      ,[DTStamp]
-      ,[UserName]
-      ,[iTaxPeriodID]
-      ,[cReference2]
-      ,[fJCRepCost]
-      ,[iAge]
-      ,[dDateAged]
-      ,[iPostSettlementTermsID]
-      ,[PostAR_iBranchID]
-      ,[PostAR_dCreatedDate]
-      ,[PostAR_dModifiedDate]
-      ,[PostAR_iCreatedBranchID]
-      ,[PostAR_iModifiedBranchID]
-      ,[PostAR_iCreatedAgentID]
-      ,[PostAR_iModifiedAgentID]
-      ,[iTxBranchID]
-      ,[PostAR_iChangeSetID]
-      ,[iMBPropertyID]
-      ,[iMBPortionID]
-      ,[iMBServiceID]
-      ,[iMBMeterID]
-      ,[iMBPropertyPortionServiceID]
-      ,[bPBTPaid]
-      ,[iGLTaxAccountID]
-	)	
-	SELECT 
-       [TxDate]
-      ,[Id]
-      ,[AccountLink]
-      ,[TrCodeID]
-      ,[Debit]
-      ,[Credit]
-      ,[iCurrencyID]
-      ,[fExchangeRate]
-      ,[fForeignDebit]
-      ,[fForeignCredit]
-      ,[Description]
-      ,[TaxTypeID]
-      ,[Reference]
-      ,[Order_No]
-      ,[ExtOrderNum]
-      ,[cAuditNumber]
-      ,[Tax_Amount]
-      ,[fForeignTax]
-      ,[Project]
-      ,[Outstanding]
-      ,[fForeignOutstanding]
-      ,[cAllocs]
-      ,[InvNumKey]
-      ,[RepID]
-      ,[LinkAccCode]
-      ,[TillID]
-      ,[CRCCheck]
-      ,[DTStamp]
-      ,[UserName]='F. Tirivavi'
-      ,[iTaxPeriodID]
-      ,[cReference2]
-      ,[fJCRepCost]
-      ,[iAge]
-      ,[dDateAged]
-      ,[iPostSettlementTermsID]
-      ,[PostAR_iBranchID]
-      ,[PostAR_dCreatedDate]
-      ,[PostAR_dModifiedDate]
-      ,[PostAR_iCreatedBranchID]
-      ,[PostAR_iModifiedBranchID]
-      ,[PostAR_iCreatedAgentID]
-      ,[PostAR_iModifiedAgentID]
-      ,[iTxBranchID]
-      ,[PostAR_iChangeSetID]
-      ,[iMBPropertyID]
-      ,[iMBPortionID]
-      ,[iMBServiceID]
-      ,[iMBMeterID]
-      ,[iMBPropertyPortionServiceID]
-      ,[bPBTPaid]
-      ,[iGLTaxAccountID]
-  FROM [dbo].[PostAR]
- WHERE(AccountLink = @AccountLink) AND (TxDate <= @tdate) 
-  ORDER BY TxDate
-  
-
-
-  Declare @StartDate date --Start calculating interest on this date
-  set  @StartDate=coalesce(
-                   @start_date
+                   dateadd(day,1,@start_date)
                   ,(SELECT dateadd(day,1,MAX(TxDate)) FROM [dbo].[StagingPostAR] where lower(Description) like '%interest%')
 				  ,(SELECT min(TxDate) FROM [dbo].[StagingPostAR]))
 

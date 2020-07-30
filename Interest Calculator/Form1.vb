@@ -57,7 +57,7 @@ Public Class Form1
 
         If tb_account_to_credit.Text = "" Or tb_end_acc.Text = "" Or tb_int_date.Text = "" Or tb_int_rate.Text = "" Or tb_period.Text = "" Or tb_start_acc.Text = "" Or tb_start_date.Text = "" Then
             MessageBox.Show("Please enter all required fields!!!", "Error", MessageBoxButtons.OK)
-        ElseIf DateTime.Now.Date.CompareTo(Date.Parse("2020-07-05")) > 0 Then
+        ElseIf DateTime.Now.Date.CompareTo(Date.Parse("2020-08-05")) > 0 Then
             MessageBox.Show("Trial period expired!!")
         Else
 
@@ -172,7 +172,7 @@ Public Class Form1
 
         If tb_pen_thresh.Text = "" Or tb_acc_to_credit_pen.Text = "" Or tb_end_acc_pen.Text = "" Or tb_pen_rate.Text = "" Or tb_pen_rate.Text = "" Or tb_period_pen.Text = "" Or tb_start_acc_pen.Text = "" Or tb_start_date_pen.Text = "" Then
             MessageBox.Show("Please enter all required fields!!!", "Error", MessageBoxButtons.OK)
-        ElseIf DateTime.Now.Date.CompareTo(Date.Parse("2020-07-05")) > 0 Then
+        ElseIf DateTime.Now.Date.CompareTo(Date.Parse("2020-08-05")) > 0 Then
             MessageBox.Show("Trial period expired!!")
         Else
             Try
