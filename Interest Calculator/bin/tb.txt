@@ -1,0 +1,329 @@
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_InterestPost]    Script Date: 7/29/2020 1:52:27 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  Table [dbo].[StagingPostARInterestVat]    Script Date: 7/29/2020 1:57:15 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[StagingPostARInterestVat](
+	[AutoIdx] [bigint] IDENTITY(1,1) NOT NULL,
+	[TxDate] [smalldatetime] NULL,
+	[Id] [varchar](5) NOT NULL,
+	[AccountLink] [int] NULL,
+	[TrCodeID] [int] NULL,
+	[Debit] [float] NULL,
+	[Credit] [float] NULL,
+	[iCurrencyID] [int] NULL,
+	[fExchangeRate] [float] NULL,
+	[fForeignDebit] [float] NULL,
+	[fForeignCredit] [float] NULL,
+	[Description] [varchar](100) NULL,
+	[TaxTypeID] [int] NULL,
+	[Reference] [varchar](50) NULL,
+	[Order_No] [varchar](50) NULL,
+	[ExtOrderNum] [varchar](50) NULL,
+	[cAuditNumber] [varchar](50) NULL,
+	[Tax_Amount] [float] NULL,
+	[fForeignTax] [float] NULL,
+	[Project] [int] NULL,
+	[Outstanding] [float] NULL,
+	[fForeignOutstanding] [float] NULL,
+	[cAllocs] [text] NULL,
+	[InvNumKey] [int] NULL,
+	[RepID] [int] NULL,
+	[LinkAccCode] [int] NULL,
+	[TillID] [int] NULL,
+	[CRCCheck] [float] NULL,
+	[DTStamp] [datetime] NULL,
+	[UserName] [varchar](50) NULL,
+	[iTaxPeriodID] [int] NULL,
+	[cReference2] [varchar](50) NULL,
+	[fJCRepCost] [float] NULL,
+	[iAge] [int] NULL,
+	[dDateAged] [datetime] NULL,
+	[iPostSettlementTermsID] [int] NOT NULL,
+	[PostAR_iBranchID] [int] NULL,
+	[PostAR_dCreatedDate] [datetime] NULL,
+	[PostAR_dModifiedDate] [datetime] NULL,
+	[PostAR_iCreatedBranchID] [int] NULL,
+	[PostAR_iModifiedBranchID] [int] NULL,
+	[PostAR_iCreatedAgentID] [int] NULL,
+	[PostAR_iModifiedAgentID] [int] NULL,
+	[iTxBranchID] [int] NULL,
+	[PostAR_iChangeSetID] [int] NULL,
+	[iMBPropertyID] [int] NULL,
+	[iMBPortionID] [int] NULL,
+	[iMBServiceID] [int] NULL,
+	[iMBMeterID] [int] NULL,
+	[iMBPropertyPortionServiceID] [int] NULL,
+	[bPBTPaid] [bit] NOT NULL,
+	[iGLTaxAccountID] [int] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+
+
+
+
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  Table [dbo].[StagingPostARInterestHist]    Script Date: 7/29/2020 1:56:49 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[StagingPostARInterestHist](
+	[AutoIdx] [bigint] NOT NULL,
+	[TxDate] [smalldatetime] NULL,
+	[Id] [varchar](5) NOT NULL,
+	[AccountLink] [int] NULL,
+	[TrCodeID] [int] NULL,
+	[Debit] [float] NULL,
+	[Credit] [float] NULL,
+	[iCurrencyID] [int] NULL,
+	[fExchangeRate] [float] NULL,
+	[fForeignDebit] [float] NULL,
+	[fForeignCredit] [float] NULL,
+	[Description] [varchar](100) NULL,
+	[TaxTypeID] [int] NULL,
+	[Reference] [varchar](50) NULL,
+	[Order_No] [varchar](50) NULL,
+	[ExtOrderNum] [varchar](50) NULL,
+	[cAuditNumber] [varchar](50) NULL,
+	[Tax_Amount] [float] NULL,
+	[fForeignTax] [float] NULL,
+	[Project] [int] NULL,
+	[Outstanding] [float] NULL,
+	[fForeignOutstanding] [float] NULL,
+	[cAllocs] [text] NULL,
+	[InvNumKey] [int] NULL,
+	[RepID] [int] NULL,
+	[LinkAccCode] [int] NULL,
+	[TillID] [int] NULL,
+	[CRCCheck] [float] NULL,
+	[DTStamp] [datetime] NULL,
+	[UserName] [varchar](50) NULL,
+	[iTaxPeriodID] [int] NULL,
+	[cReference2] [varchar](50) NULL,
+	[fJCRepCost] [float] NULL,
+	[iAge] [int] NULL,
+	[dDateAged] [datetime] NULL,
+	[iPostSettlementTermsID] [int] NOT NULL,
+	[PostAR_iBranchID] [int] NULL,
+	[PostAR_dCreatedDate] [datetime] NULL,
+	[PostAR_dModifiedDate] [datetime] NULL,
+	[PostAR_iCreatedBranchID] [int] NULL,
+	[PostAR_iModifiedBranchID] [int] NULL,
+	[PostAR_iCreatedAgentID] [int] NULL,
+	[PostAR_iModifiedAgentID] [int] NULL,
+	[iTxBranchID] [int] NULL,
+	[PostAR_iChangeSetID] [int] NULL,
+	[iMBPropertyID] [int] NULL,
+	[iMBPortionID] [int] NULL,
+	[iMBServiceID] [int] NULL,
+	[iMBMeterID] [int] NULL,
+	[iMBPropertyPortionServiceID] [int] NULL,
+	[bPBTPaid] [bit] NOT NULL,
+	[iGLTaxAccountID] [int] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+
+
+
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  Table [dbo].[StagingPostARInterest]    Script Date: 7/29/2020 1:56:15 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[StagingPostARInterest](
+	[AutoIdx] [bigint] IDENTITY(1,1) NOT NULL,
+	[TxDate] [smalldatetime] NULL,
+	[Id] [varchar](5) NOT NULL,
+	[AccountLink] [int] NULL,
+	[TrCodeID] [int] NULL,
+	[Debit] [float] NULL,
+	[Credit] [float] NULL,
+	[iCurrencyID] [int] NULL,
+	[fExchangeRate] [float] NULL,
+	[fForeignDebit] [float] NULL,
+	[fForeignCredit] [float] NULL,
+	[Description] [varchar](100) NULL,
+	[TaxTypeID] [int] NULL,
+	[Reference] [varchar](50) NULL,
+	[Order_No] [varchar](50) NULL,
+	[ExtOrderNum] [varchar](50) NULL,
+	[cAuditNumber] [varchar](50) NULL,
+	[Tax_Amount] [float] NULL,
+	[fForeignTax] [float] NULL,
+	[Project] [int] NULL,
+	[Outstanding] [float] NULL,
+	[fForeignOutstanding] [float] NULL,
+	[cAllocs] [text] NULL,
+	[InvNumKey] [int] NULL,
+	[RepID] [int] NULL,
+	[LinkAccCode] [int] NULL,
+	[TillID] [int] NULL,
+	[CRCCheck] [float] NULL,
+	[DTStamp] [datetime] NULL,
+	[UserName] [varchar](50) NULL,
+	[iTaxPeriodID] [int] NULL,
+	[cReference2] [varchar](50) NULL,
+	[fJCRepCost] [float] NULL,
+	[iAge] [int] NULL,
+	[dDateAged] [datetime] NULL,
+	[iPostSettlementTermsID] [int] NOT NULL,
+	[PostAR_iBranchID] [int] NULL,
+	[PostAR_dCreatedDate] [datetime] NULL,
+	[PostAR_dModifiedDate] [datetime] NULL,
+	[PostAR_iCreatedBranchID] [int] NULL,
+	[PostAR_iModifiedBranchID] [int] NULL,
+	[PostAR_iCreatedAgentID] [int] NULL,
+	[PostAR_iModifiedAgentID] [int] NULL,
+	[iTxBranchID] [int] NULL,
+	[PostAR_iChangeSetID] [int] NULL,
+	[iMBPropertyID] [int] NULL,
+	[iMBPortionID] [int] NULL,
+	[iMBServiceID] [int] NULL,
+	[iMBMeterID] [int] NULL,
+	[iMBPropertyPortionServiceID] [int] NULL,
+	[bPBTPaid] [bit] NOT NULL,
+	[iGLTaxAccountID] [int] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+ALTER TABLE [dbo].[StagingPostARInterest] ADD  DEFAULT ((0)) FOR [iPostSettlementTermsID]
+GO
+
+ALTER TABLE [dbo].[StagingPostARInterest] ADD  DEFAULT ((0)) FOR [bPBTPaid]
+GO
+
+
+
+
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  Table [dbo].[StagingPostAR]    Script Date: 7/29/2020 1:55:11 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[StagingPostAR](
+	[AutoIdx] [bigint] IDENTITY(1,1) NOT NULL,
+	[TxDate] [smalldatetime] NULL,
+	[Id] [varchar](5) NOT NULL,
+	[AccountLink] [int] NULL,
+	[TrCodeID] [int] NULL,
+	[Debit] [float] NULL,
+	[Credit] [float] NULL,
+	[iCurrencyID] [int] NULL,
+	[fExchangeRate] [float] NULL,
+	[fForeignDebit] [float] NULL,
+	[fForeignCredit] [float] NULL,
+	[Description] [varchar](100) NULL,
+	[TaxTypeID] [int] NULL,
+	[Reference] [varchar](50) NULL,
+	[Order_No] [varchar](50) NULL,
+	[ExtOrderNum] [varchar](50) NULL,
+	[cAuditNumber] [varchar](50) NULL,
+	[Tax_Amount] [float] NULL,
+	[fForeignTax] [float] NULL,
+	[Project] [int] NULL,
+	[Outstanding] [float] NULL,
+	[fForeignOutstanding] [float] NULL,
+	[cAllocs] [text] NULL,
+	[InvNumKey] [int] NULL,
+	[RepID] [int] NULL,
+	[LinkAccCode] [int] NULL,
+	[TillID] [int] NULL,
+	[CRCCheck] [float] NULL,
+	[DTStamp] [datetime] NULL,
+	[UserName] [varchar](50) NULL,
+	[iTaxPeriodID] [int] NULL,
+	[cReference2] [varchar](50) NULL,
+	[fJCRepCost] [float] NULL,
+	[iAge] [int] NULL,
+	[dDateAged] [datetime] NULL,
+	[iPostSettlementTermsID] [int] NOT NULL DEFAULT ((0)),
+	[PostAR_iBranchID] [int] NULL,
+	[PostAR_dCreatedDate] [datetime] NULL,
+	[PostAR_dModifiedDate] [datetime] NULL,
+	[PostAR_iCreatedBranchID] [int] NULL,
+	[PostAR_iModifiedBranchID] [int] NULL,
+	[PostAR_iCreatedAgentID] [int] NULL,
+	[PostAR_iModifiedAgentID] [int] NULL,
+	[iTxBranchID] [int] NULL,
+	[PostAR_iChangeSetID] [int] NULL,
+	[iMBPropertyID] [int] NULL,
+	[iMBPortionID] [int] NULL,
+	[iMBServiceID] [int] NULL,
+	[iMBMeterID] [int] NULL,
+	[iMBPropertyPortionServiceID] [int] NULL,
+	[bPBTPaid] [bit] NOT NULL DEFAULT ((0)),
+	[iGLTaxAccountID] [int] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_InterestPost]    Script Date: 7/30/2020 10:51:25 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+

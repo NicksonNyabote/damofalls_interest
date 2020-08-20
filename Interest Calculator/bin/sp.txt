@@ -1,0 +1,1485 @@
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_InterestPost]    Script Date: 8/20/2020 8:51:23 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+
+CREATE Procedure [dbo].[SpInsertStagingPostAR_InterestPost]
+(
+    @period int,              -- interest period
+	@cracc int                -- account to be credited with interest amount
+)
+	AS
+
+	set @cracc= case when @cracc is null or @cracc='' 
+	                 then 22
+			    else @cracc end 
+	set @period= case when @period is null or @period='' 
+	                 then (select max(Period) from PostGL)
+				 else @cracc end 
+
+  --INSERT INTEREST INTO PostAR
+   INSERT INTO [dbo].[PostAR]
+	(
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,Debit
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+  SELECT 
+       [TxDate]
+      ,[Id] 
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,[Debit]
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+   FROM [dbo].[StagingPostARInterest]
+   where Debit<>0 and (cast(AccountLink as varchar)+cast(Reference as varchar)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostAR
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))
+
+   --Insert into POSTGL
+   --Debit Receivable Control 79
+   INSERT INTO [dbo].[POSTGL]
+	(
+    TxDate,Id,AccountLink,TrCodeID,Debit,Credit,iCurrencyID,fExchangeRate,fForeignDebit,fForeignCredit,Description,TaxTypeID,Reference,cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,     Period,DrCrAccount,JobCodeLink,[iTaxPeriodID],[cPayeeName],[bPrintCheque],[RepID],[fJCRepCost],[iMFPID],[bIsJCDocLine],[bIsSTGLDocLine],[iInvLineID],[PostGL_iBranchID],[PostGL_dCreatedDate],[PostGL_dModifiedDate],[PostGL_iCreatedBranchID],[PostGL_iModifiedBranchID],[PostGL_iCreatedAgentID],[PostGL_iModifiedAgentID],[iTxBranchID],[PostGL_iChangeSetID],[cBankRef],[bPBTPaid]
+	)	
+   SELECT 
+    TxDate,Id,79,TrCodeID,Debit,0,iCurrencyID,fExchangeRate,fForeignDebit,fForeignCredit,Description,TaxTypeID,Reference,cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,@period,AccountLink,0 ,NULL,NULL,0,0,0,NULL,0,0,0,0,NULL,NULL,NULL,NULL,NULL	,NULL,0	,NULL,NULL,0
+   FROM [dbo].[StagingPostARInterest]
+  where  Debit<>0 /*and (cast(AccountLink as varchar)+cast(Reference as varchar)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostGL
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))*/
+
+   --Credit Interest Received 22/ Late Payment Fee 357 
+   INSERT INTO [dbo].[POSTGL]
+	(
+    TxDate,Id,AccountLink,TrCodeID,Debit,Credit,iCurrencyID,fExchangeRate,fForeignDebit,fForeignCredit,Description,TaxTypeID,Reference,cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,Period,DrCrAccount,JobCodeLink,[iTaxPeriodID],[cPayeeName],[bPrintCheque],[RepID],[fJCRepCost],[iMFPID],[bIsJCDocLine],[bIsSTGLDocLine],[iInvLineID],[PostGL_iBranchID],[PostGL_dCreatedDate],[PostGL_dModifiedDate],[PostGL_iCreatedBranchID],[PostGL_iModifiedBranchID],[PostGL_iCreatedAgentID],[PostGL_iModifiedAgentID],[iTxBranchID],[PostGL_iChangeSetID],[cBankRef],[bPBTPaid]
+    )	
+   SELECT 
+    TxDate,Id,(case when lower(Reference) like '%penalt%' then 357 else  22 end) ,TrCodeID,0 ,Debit,iCurrencyID,fExchangeRate,fForeignDebit,Debit,Description,TaxTypeID,Reference,cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,@period,AccountLink ,0          ,NULL          ,NULL        ,0             ,0      ,0           ,NULL    ,0             ,0    	     ,0	  ,0                 ,NULL                 ,NULL                  ,NULL	            ,NULL	   ,NULL	,NULL	  ,0	,NULL	          ,NULL	 ,0
+   FROM [dbo].[StagingPostARInterest]
+   where Debit<>0 /*and (cast(AccountLink as varchar)+cast(Reference as varchar)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostGL
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))*/
+
+   
+   Update Client Set
+    Client.DCBalance=(select sum(Debit-Credit) from postar where accountlink=Client.DCLink),
+     fForeignBalance=(select sum(Debit-Credit) from postar where accountlink=Client.DCLink)
+  where dclink in (select distinct AccountLink from StagingPostARInterest where  Debit<>0 )
+ 
+ insert into  [dbo].[StagingPostARInterestHist]
+ select *  FROM [dbo].[StagingPostARInterest]
+ where Debit<>0 and (cast(AccountLink as varchar)+cast(Reference as varchar)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from StagingPostARInterestHist
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))
+
+
+ delete from  [dbo].[StagingPostARInterest]
+
+
+
+
+GO
+
+
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_Payment]    Script Date: 8/20/2020 8:51:40 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE Procedure [dbo].[SpInsertStagingPostAR_Payment] 
+	(
+	 
+	@start_acc NVARCHAR(100), -- account start of range
+	@end_acc NVARCHAR(100),   -- account end of range
+	--@start_date date,         -- Payment charging starting date 
+	@tdate	date,             -- date of Payment
+	--@prate  float,            -- Payment rate % per anum
+	@period int,              -- Payment period
+	@cracc int ,              -- account to be credited with Payment amount
+	--@thresh float             --payment threshold
+	@payamount float
+	)
+	AS
+
+Declare @AccountLink int -- account to calculate interest on
+DECLARE @cid INT
+DECLARE @getid CURSOR
+
+
+DELETE FROM [dbo].[StagingPostARInterest]
+DELETE FROM [dbo].[StagingPostARInterestVat]
+
+set @tdate= case when @tdate is null or @tdate='' 
+	                 then getdate()
+			    else @tdate end 
+
+SET @getid = CURSOR FOR
+    SELECT DCLink
+    FROM   [dbo].Client
+    where Account between @start_acc and @end_acc
+OPEN @getid
+  FETCH NEXT
+  FROM @getid INTO @cid
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    set @AccountLink=@cid
+	DELETE FROM [dbo].[StagingPostAR]
+	
+	INSERT INTO [dbo].[StagingPostAR]
+	(
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,[Debit]
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+	SELECT 
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,[Debit]
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]='F. Tirivavi'
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+  FROM [dbo].[PostAR]
+ WHERE(AccountLink = @AccountLink) AND (TxDate <= @tdate) 
+  ORDER BY TxDate
+  
+ 
+
+ Declare @CumInt  float --cumulative interest and charges
+ set @CumInt=(select coalesce(SUM(Debit) ,0)
+               FROM [dbo].[StagingPostAR] 
+			   where TxDate <= @tdate
+			   and(   lower(Description) like'%interest%'
+			       or lower(Description) like'%penalt%'
+				   or lower(Reference) like'%interest%'
+				   or lower(Reference) like'%penalt%')
+			 )
+
+ Declare @Cbal float --Balance as at current day
+ set @Cbal=(select SUM(Debit-Credit) FROM [dbo].[StagingPostAR])
+
+
+ DECLARE @paid float --Total Payments
+ set @paid=(select coalesce(SUM(Credit),0) 
+               FROM [dbo].[StagingPostAR] 
+			   where TxDate <= @tdate)
+
+ DECLARE @intoutstanding float
+ set @intoutstanding=@CumInt-@paid
+
+ Declare @intrestrepay float ---Amount to be paid towards interest and penalties
+ set @intrestrepay=case when @intoutstanding>0 
+                            then case when @payamount<=@intoutstanding
+							          then @payamount
+								   else @intoutstanding end
+                         else 0 end 
+
+ DECLARE @mainpay float  ----Amount to repay main balance
+ set @mainpay=(@payamount-@intrestrepay)*(1-0.145)
+
+ DECLARE @vatpay float ----Amount to pay vat
+ set @vatpay=(@payamount-@intrestrepay)*(0.145)
+
+ DECLARE @Project int
+ SELECT @Project=Project FROM [dbo].[StagingPostAR] WHERE Project<>0
+
+
+ --Interest/penalty payment
+ INSERT INTO [dbo].[StagingPostARInterest]
+	( [TxDate],[Id],[AccountLink],[TrCodeID],Debit,[Credit],[iCurrencyID],[fExchangeRate]
+      ,[fForeignDebit],[fForeignCredit],[Description],[TaxTypeID],[Reference],[Order_No]
+      ,[ExtOrderNum],[cAuditNumber],[Tax_Amount],[fForeignTax],[Project],[Outstanding]
+      ,[fForeignOutstanding],[cAllocs],[InvNumKey],[RepID],[LinkAccCode],[TillID],[CRCCheck]
+      ,[DTStamp],[UserName],[iTaxPeriodID],[cReference2],[fJCRepCost],[iAge],[dDateAged]
+      ,[iPostSettlementTermsID],[PostAR_iBranchID],[PostAR_dCreatedDate],[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID],[PostAR_iModifiedBranchID],[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID],[iTxBranchID],[PostAR_iChangeSetID],[iMBPropertyID]
+      ,[iMBPortionID],[iMBServiceID],[iMBMeterID],[iMBPropertyPortionServiceID],[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+  SELECT top 1
+       @tdate as TxDate
+      ,'ARTx' as Id
+      ,@AccountLink as AccountLink
+      ,11 as TrCodeID
+      ,0 as Debit
+	  ,@intrestrepay as Credit
+      ,0 as iCurrencyID --********
+      ,1 as fExchangeRate --********
+      ,0 fForeignDebit --********
+	  ,@intrestrepay as fForeignCredit
+      ,'Payment Of Interest/Penalt' as Description
+      ,0 as TaxTypeID
+      ,'Interest Payment'+CONVERT(varchar, @tdate ,103) as Reference
+      ,'CP'+CONVERT(varchar, @tdate ,103) as Order_No
+      ,'CP'+CONVERT(varchar, @tdate ,103) as ExtOrderNum
+      ,'CP'+CONVERT(varchar, @tdate ,103) as cAuditNumber
+      ,0 as Tax_Amount
+      ,0 as fForeignTax
+      ,@Project as Project
+      ,@intrestrepay as Outstanding
+	  ,@intrestrepay as fForeignOutstanding --********
+	  ,null as cAllocs
+      ,0 as InvNumKey --********
+
+      ,0 as RepID
+      ,0 as LinkAccCode
+      ,0 as TillID
+      ,null as CRCCheck
+      ,getdate() as [DTStamp]
+      ,'Admin' as [UserName]
+      ,null as [iTaxPeriodID]
+      ,null as [cReference2]
+      ,0 as [fJCRepCost]
+      ,0 as [iAge]
+      ,@tdate as [dDateAged]
+      ,0 as [iPostSettlementTermsID]
+      ,0 as [PostAR_iBranchID]
+      ,null as [PostAR_dCreatedDate]
+      ,null as [PostAR_dModifiedDate]
+      ,null as [PostAR_iCreatedBranchID]
+      ,null as [PostAR_iModifiedBranchID]
+      ,null as [PostAR_iCreatedAgentID]
+      ,null as [PostAR_iModifiedAgentID]
+      ,0 as [iTxBranchID]
+      ,null as [PostAR_iChangeSetID]
+      ,0 as [iMBPropertyID]
+      ,0 as [iMBPortionID]
+      ,0 as [iMBServiceID]
+      ,0 as [iMBMeterID]
+      ,0 as [iMBPropertyPortionServiceID]
+      ,0 as [bPBTPaid]
+      ,0 as iGLTaxAccountID
+  FROM  (select 1  as dd) as result
+  where @intrestrepay<>0 and (cast(@AccountLink as varchar)+'Interest Payment'+CONVERT(varchar, @tdate ,103)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostAR
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostAR))
+
+  
+  --main balance payment
+ INSERT INTO [dbo].[StagingPostARInterest]
+	( [TxDate],[Id],[AccountLink],[TrCodeID],Debit,[Credit],[iCurrencyID],[fExchangeRate]
+      ,[fForeignDebit],[fForeignCredit],[Description],[TaxTypeID],[Reference],[Order_No]
+      ,[ExtOrderNum],[cAuditNumber],[Tax_Amount],[fForeignTax],[Project],[Outstanding]
+      ,[fForeignOutstanding],[cAllocs],[InvNumKey],[RepID],[LinkAccCode],[TillID],[CRCCheck]
+      ,[DTStamp],[UserName],[iTaxPeriodID],[cReference2],[fJCRepCost],[iAge],[dDateAged]
+      ,[iPostSettlementTermsID],[PostAR_iBranchID],[PostAR_dCreatedDate],[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID],[PostAR_iModifiedBranchID],[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID],[iTxBranchID],[PostAR_iChangeSetID],[iMBPropertyID]
+      ,[iMBPortionID],[iMBServiceID],[iMBMeterID],[iMBPropertyPortionServiceID],[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+  SELECT top 1
+       @tdate as TxDate
+      ,'ARTx' as Id
+      ,@AccountLink as AccountLink
+      ,11 as TrCodeID
+      ,0 as Debit
+	  ,@mainpay+@vatpay as Credit
+      ,0 as iCurrencyID --********
+      ,1 as fExchangeRate --********
+      ,0 fForeignDebit --********
+	  ,@mainpay+@vatpay as fForeignCredit
+      ,'Main Payment' as Description
+      ,0 as TaxTypeID
+      ,'Main Payment'+CONVERT(varchar, @tdate ,103) as Reference
+      ,'CP'+CONVERT(varchar, @tdate ,103) as Order_No
+      ,'CP'+CONVERT(varchar, @tdate ,103) as ExtOrderNum
+      ,'CP'+CONVERT(varchar, @tdate ,103) as cAuditNumber
+      ,@vatpay as Tax_Amount
+      ,@vatpay as fForeignTax
+      ,@Project as Project
+      ,@mainpay*-1 as Outstanding
+	  ,@mainpay*-1 as fForeignOutstanding --********
+	  ,null as cAllocs
+      ,0 as InvNumKey --********
+
+      ,0 as RepID
+      ,0 as LinkAccCode
+      ,0 as TillID
+      ,null as CRCCheck
+      ,getdate() as [DTStamp]
+      ,'Admin' as [UserName]
+      ,null as [iTaxPeriodID]
+      ,null as [cReference2]
+      ,0 as [fJCRepCost]
+      ,0 as [iAge]
+      ,@tdate as [dDateAged]
+      ,0 as [iPostSettlementTermsID]
+      ,0 as [PostAR_iBranchID]
+      ,null as [PostAR_dCreatedDate]
+      ,null as [PostAR_dModifiedDate]
+      ,null as [PostAR_iCreatedBranchID]
+      ,null as [PostAR_iModifiedBranchID]
+      ,null as [PostAR_iCreatedAgentID]
+      ,null as [PostAR_iModifiedAgentID]
+      ,0 as [iTxBranchID]
+      ,null as [PostAR_iChangeSetID]
+      ,0 as [iMBPropertyID]
+      ,0 as [iMBPortionID]
+      ,0 as [iMBServiceID]
+      ,0 as [iMBMeterID]
+      ,0 as [iMBPropertyPortionServiceID]
+      ,0 as [bPBTPaid]
+      ,0 as iGLTaxAccountID
+  FROM  (select 1  as dd) as result
+  where @mainpay<>0 and (cast(@AccountLink as varchar)+'Main Payment'+CONVERT(varchar, @tdate ,103)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostAR
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostAR))
+
+  
+
+   FETCH NEXT
+   FROM @getid INTO @cid
+   END
+
+CLOSE @getid
+DEALLOCATE @getid
+ 
+
+
+GO
+
+
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_PaymentPost]    Script Date: 8/20/2020 8:51:53 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+
+
+CREATE Procedure [dbo].[SpInsertStagingPostAR_PaymentPost]
+(
+    @period int,              -- interest period
+	@cracc int                -- account to be credited with interest amount
+)
+	AS
+
+	set @cracc= case when @cracc is null or @cracc='' 
+	                 then 79
+			    else @cracc end 
+	set @period= case when @period is null or @period='' 
+	                 then (select max(Period) from PostGL)
+				 else @cracc end 
+
+  --INSERT INTEREST INTO PostAR
+   INSERT INTO [dbo].[PostAR]
+	(
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,Debit
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+  SELECT 
+       [TxDate]
+      ,[Id] 
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,[Debit]
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+   FROM [dbo].[StagingPostARInterest]
+   where Credit<>0 /*and (cast(AccountLink as varchar)+cast(Reference as varchar)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostAR
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))*/
+
+ --INSERT INTEREST INTO PostAR Tax
+   INSERT INTO [dbo].[PostAR]
+	(
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,Debit
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+  SELECT 
+       [TxDate]
+      ,[Id] 
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,[Credit]
+      ,0
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,Credit
+      ,0
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]+'Tax'
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+   FROM [dbo].[StagingPostARInterest]
+   where Tax_Amount<>0 and Credit<>0 /*and (cast(AccountLink as varchar)+cast(Reference as varchar)+'Tax') not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostAR
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))*/
+
+
+   --Insert into POSTGL
+   --Credit Receivable Control Acc 79
+   INSERT INTO [dbo].[POSTGL]
+	(
+    TxDate,Id,AccountLink,TrCodeID,Debit,Credit,iCurrencyID,fExchangeRate,fForeignDebit,fForeignCredit,Description,TaxTypeID,Reference,cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,     Period,DrCrAccount,JobCodeLink,[iTaxPeriodID],[cPayeeName],[bPrintCheque],[RepID],[fJCRepCost],[iMFPID],[bIsJCDocLine],[bIsSTGLDocLine],[iInvLineID],[PostGL_iBranchID],[PostGL_dCreatedDate],[PostGL_dModifiedDate],[PostGL_iCreatedBranchID],[PostGL_iModifiedBranchID],[PostGL_iCreatedAgentID],[PostGL_iModifiedAgentID],[iTxBranchID],[PostGL_iChangeSetID],[cBankRef],[bPBTPaid]
+	)	
+   SELECT 
+    TxDate,Id,79,TrCodeID,Debit,Credit,iCurrencyID,fExchangeRate,fForeignDebit,fForeignCredit,Description,TaxTypeID,Reference,cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,@period,AccountLink,0 ,NULL,NULL,0,0,0,NULL,0,0,0,0,NULL,NULL,NULL,NULL,NULL	,NULL,0	,NULL,NULL,0
+   FROM [dbo].[StagingPostARInterest]
+  where  Credit<>0 /*and (cast(AccountLink as varchar)+cast(Reference as varchar)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostGL
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))*/
+
+   --Debit Steward Bank 325
+   INSERT INTO [dbo].[POSTGL]
+	(
+    TxDate,Id,AccountLink,TrCodeID,Debit,Credit,iCurrencyID,fExchangeRate,fForeignDebit,fForeignCredit,Description,TaxTypeID,Reference,cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,Period,DrCrAccount,JobCodeLink,[iTaxPeriodID],[cPayeeName],[bPrintCheque],[RepID],[fJCRepCost],[iMFPID],[bIsJCDocLine],[bIsSTGLDocLine],[iInvLineID],[PostGL_iBranchID],[PostGL_dCreatedDate],[PostGL_dModifiedDate],[PostGL_iCreatedBranchID],[PostGL_iModifiedBranchID],[PostGL_iCreatedAgentID],[PostGL_iModifiedAgentID],[iTxBranchID],[PostGL_iChangeSetID],[cBankRef],[bPBTPaid]
+    )	
+   SELECT 
+    TxDate,Id,325 ,TrCodeID,Credit-Tax_Amount ,0,iCurrencyID,fExchangeRate,Credit-Tax_Amount,0,Description,TaxTypeID,Reference,cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,@period,AccountLink ,0          ,NULL          ,NULL        ,0             ,0      ,0           ,NULL    ,0             ,0    	     ,0	  ,0                 ,NULL                 ,NULL                  ,NULL	            ,NULL	   ,NULL	,NULL	  ,0	,NULL	          ,NULL	 ,0
+   FROM [dbo].[StagingPostARInterest]
+   where (Credit-Tax_Amount)>0 and Credit<>0/* and (cast(AccountLink as varchar)+cast(Reference as varchar)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostGL
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))*/
+
+   --Debit VAT Control 97
+   INSERT INTO [dbo].[POSTGL]
+	(
+    TxDate,Id,AccountLink,TrCodeID,Debit,Credit,iCurrencyID,fExchangeRate,fForeignDebit,fForeignCredit,Description,TaxTypeID,Reference,cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,Period,DrCrAccount,JobCodeLink,[iTaxPeriodID],[cPayeeName],[bPrintCheque],[RepID],[fJCRepCost],[iMFPID],[bIsJCDocLine],[bIsSTGLDocLine],[iInvLineID],[PostGL_iBranchID],[PostGL_dCreatedDate],[PostGL_dModifiedDate],[PostGL_iCreatedBranchID],[PostGL_iModifiedBranchID],[PostGL_iCreatedAgentID],[PostGL_iModifiedAgentID],[iTxBranchID],[PostGL_iChangeSetID],[cBankRef],[bPBTPaid]
+    )	
+   SELECT 
+    TxDate,Id,97 ,TrCodeID,Tax_Amount ,0,iCurrencyID,fExchangeRate,Tax_Amount,0,Description,TaxTypeID,Reference+'Tax',cAuditNumber,Tax_Amount,fForeignTax,Project,CRCCheck,UserName,iGLTaxAccountID,@period,AccountLink ,0          ,NULL          ,NULL        ,0             ,0      ,0           ,NULL    ,0             ,0    	     ,0	  ,0                 ,NULL                 ,NULL                  ,NULL	            ,NULL	   ,NULL	,NULL	  ,0	,NULL	          ,NULL	 ,0
+   FROM [dbo].[StagingPostARInterest]
+   where Tax_Amount>0 and Credit<>0 /*and (cast(AccountLink as varchar)+cast(Reference as varchar)+'Tax') not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostGL
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))*/
+ 
+   Update Client Set
+    Client.DCBalance=(select sum(Debit-Credit) from postar where accountlink=Client.DCLink),
+     fForeignBalance=(select sum(Debit-Credit) from postar where accountlink=Client.DCLink)
+  where dclink in (select distinct AccountLink from StagingPostARInterest where  Debit<>0 )
+ 
+ insert into  [dbo].[StagingPostARInterestHist]
+ select *  FROM [dbo].[StagingPostARInterest]
+ where Debit<>0 and (cast(AccountLink as varchar)+cast(Reference as varchar)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from StagingPostARInterestHist
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostARInterest))
+
+
+ delete from  [dbo].[StagingPostARInterest]
+
+
+
+
+
+GO
+
+
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_Penalt]    Script Date: 8/20/2020 8:52:12 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE Procedure [dbo].[SpInsertStagingPostAR_Penalt]
+	(
+	 
+	@start_acc NVARCHAR(100), -- account start of range
+	@end_acc NVARCHAR(100),   -- account end of range
+	@start_date date,         -- penalt charging starting date 
+	@tdate	date,             -- date of penalt
+	@prate  float,            -- penalt rate % per anum
+	@period int,              -- penalt period
+	@cracc int ,              -- account to be credited with penalt amount
+	@thresh float             --payment threshold
+	)
+	AS
+
+Declare @AccountLink int -- account to calculate interest on
+DECLARE @cid INT
+DECLARE @getid CURSOR
+
+
+DELETE FROM [dbo].[StagingPostARInterest]
+DELETE FROM [dbo].[StagingPostARInterestVat]
+
+SET @getid = CURSOR FOR
+    SELECT DCLink
+    FROM   [dbo].Client
+    where Account between @start_acc and @end_acc
+OPEN @getid
+  FETCH NEXT
+  FROM @getid INTO @cid
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    set @AccountLink=@cid
+	DELETE FROM [dbo].[StagingPostAR]
+	
+	INSERT INTO [dbo].[StagingPostAR]
+	(
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,[Debit]
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+	SELECT 
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,[Debit]
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]='F. Tirivavi'
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+  FROM [dbo].[PostAR]
+ WHERE(AccountLink = @AccountLink) AND (TxDate <= @tdate) 
+  ORDER BY TxDate
+  
+   Declare @StartDate date --Start calculating penalt on this date
+  set  @StartDate=coalesce(
+                   dateadd(day,1,@start_date)
+                  ,(SELECT dateadd(day,1,MAX(TxDate)) FROM [dbo].[StagingPostAR] where lower(Description) like '%penalt%')
+				  ,(SELECT min(TxDate) FROM [dbo].[StagingPostAR]))
+
+ Declare @IntrestTot float --Total penalt
+ set @IntrestTot=0
+ 
+ Declare @Curpenalt float --penalt for current day
+ set @Curpenalt=0
+
+ Declare @Cbal float --Balance as at current day
+ set @Cbal=0
+
+ DECLARE @Project int
+ SELECT @Project=Project FROM [dbo].[StagingPostAR] WHERE Project<>0
+
+ DECLARE @paid float
+ set @paid=(select SUM(Credit) 
+               FROM [dbo].[StagingPostAR] 
+			   where TxDate between @start_date and @tdate)
+  set @Cbal=(select SUM(Debit-Credit) FROM [dbo].[StagingPostAR])
+  set  @IntrestTot=case when @Cbal is null or @Cbal<=0  or @paid>=@thresh then 0
+                  else @Cbal*(@prate/100) end
+
+
+ INSERT INTO [dbo].[StagingPostARInterest]
+	(
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,Debit
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+  SELECT top 1
+       @tdate as TxDate
+      ,'ARTx' as Id
+      ,@AccountLink as AccountLink
+      ,11 as TrCodeID
+      ,@IntrestTot as Debit
+	  ,0 as Credit
+      ,0 as iCurrencyID --********
+      ,1 as fExchangeRate --********
+      ,@IntrestTot fForeignDebit --********
+	  ,0 as fForeignCredit
+      ,'Penalt Calculated' as Description
+      ,0 as TaxTypeID
+      ,'Penalt'+CONVERT(varchar, @tdate ,103) as Reference
+      ,'CP'+CONVERT(varchar, @tdate ,103) as Order_No
+      ,'CP'+CONVERT(varchar, @tdate ,103) as ExtOrderNum
+      ,'CP'+CONVERT(varchar, @tdate ,103) as cAuditNumber
+      ,0 as Tax_Amount
+      ,0 as fForeignTax
+      ,@Project as Project
+      ,@IntrestTot as Outstanding
+	  ,@IntrestTot as fForeignOutstanding --********
+	  ,null as cAllocs
+      ,0 as InvNumKey --********
+
+      ,0 as RepID
+      ,0 as LinkAccCode
+      ,0 as TillID
+      ,null as CRCCheck
+      ,getdate() as [DTStamp]
+      ,'Admin' as [UserName]
+      ,null as [iTaxPeriodID]
+      ,null as [cReference2]
+      ,0 as [fJCRepCost]
+      ,0 as [iAge]
+      ,@tdate as [dDateAged]
+      ,0 as [iPostSettlementTermsID]
+      ,0 as [PostAR_iBranchID]
+      ,null as [PostAR_dCreatedDate]
+      ,null as [PostAR_dModifiedDate]
+      ,null as [PostAR_iCreatedBranchID]
+      ,null as [PostAR_iModifiedBranchID]
+      ,null as [PostAR_iCreatedAgentID]
+      ,null as [PostAR_iModifiedAgentID]
+      ,0 as [iTxBranchID]
+      ,null as [PostAR_iChangeSetID]
+      ,0 as [iMBPropertyID]
+      ,0 as [iMBPortionID]
+      ,0 as [iMBServiceID]
+      ,0 as [iMBMeterID]
+      ,0 as [iMBPropertyPortionServiceID]
+      ,0 as [bPBTPaid]
+      ,0 as iGLTaxAccountID
+  FROM  (select 1  as dd) as result
+  where @IntrestTot<>0 and (cast(@AccountLink as varchar)+'Penalt'+CONVERT(varchar, @tdate ,103)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostAR
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostAR))
+
+  
+   FETCH NEXT
+   FROM @getid INTO @cid
+   END
+
+CLOSE @getid
+DEALLOCATE @getid
+
+
+GO
+
+
+USE [DAMOFALLS INVESTMENTS]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SpInsertStagingPostAR_SingleInterestNew]    Script Date: 8/20/2020 8:52:27 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE Procedure [dbo].[SpInsertStagingPostAR_SingleInterestNew]
+	(
+	 
+	@start_acc NVARCHAR(100), -- account start of range
+	@end_acc NVARCHAR(100),   -- account end of range
+	@start_date date,         -- interest charging starting date 
+	@tdate	date,             -- date of interest
+	@irate  float,            -- interest rate % per anum
+	@period int,              -- interest period
+	@cracc int                -- account to be credited with interest amount
+	)
+	AS
+
+Declare @AccountLink int -- account to calculate interest on
+DECLARE @cid INT
+DECLARE @getid CURSOR
+
+
+DELETE FROM [dbo].[StagingPostARInterest]
+DELETE FROM [dbo].[StagingPostARInterestVat]
+
+SET @getid = CURSOR FOR
+    SELECT DCLink
+    FROM   [dbo].Client
+    where Account between @start_acc and @end_acc
+OPEN @getid
+  FETCH NEXT
+  FROM @getid INTO @cid
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    set @AccountLink=@cid
+	DELETE FROM [dbo].[StagingPostAR]
+	
+	INSERT INTO [dbo].[StagingPostAR]
+	(
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,[Debit]
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+	SELECT 
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,[Debit]
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]='F. Tirivavi'
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+  FROM [dbo].[PostAR]
+ WHERE(AccountLink = @AccountLink) AND (TxDate <= @tdate) 
+  ORDER BY TxDate
+  
+
+
+  Declare @StartDate date --Start calculating interest on this date
+  set  @StartDate=coalesce(
+                   dateadd(day,1,@start_date)
+                  ,(SELECT dateadd(day,1,MAX(TxDate)) FROM [dbo].[StagingPostAR] where lower(Description) like '%interest%')
+				  ,(SELECT min(TxDate) FROM [dbo].[StagingPostAR]))
+
+ Declare @IntrestTot float --Total Interest
+ set @IntrestTot=0
+ 
+ Declare @CurInterest float --Interest for current day
+ set @CurInterest=0
+
+ Declare @Cbal float --Balance as at current day
+ set @Cbal=0
+
+ DECLARE @Project int
+ SELECT @Project=Project FROM [dbo].[StagingPostAR] WHERE Project<>0
+
+WHILE (@StartDate is not null and @StartDate <= @tdate)
+BEGIN
+  set @Cbal=(select SUM(Debit-Credit) FROM [dbo].[StagingPostAR] where TxDate<=@StartDate)
+  set  @CurInterest=case when @Cbal is null or round(@Cbal,0)<=0 then 0
+                  else (@Cbal+@IntrestTot)*(@irate/36500) end
+  set @IntrestTot= case when @CurInterest>0 then @IntrestTot+@CurInterest
+                else @IntrestTot end
+  set @StartDate=dateadd(day,1,@StartDate)
+END
+  
+ 
+
+ INSERT INTO [dbo].[StagingPostARInterest]
+	(
+       [TxDate]
+      ,[Id]
+      ,[AccountLink]
+      ,[TrCodeID]
+      ,Debit
+      ,[Credit]
+      ,[iCurrencyID]
+      ,[fExchangeRate]
+      ,[fForeignDebit]
+      ,[fForeignCredit]
+      ,[Description]
+      ,[TaxTypeID]
+      ,[Reference]
+      ,[Order_No]
+      ,[ExtOrderNum]
+      ,[cAuditNumber]
+      ,[Tax_Amount]
+      ,[fForeignTax]
+      ,[Project]
+      ,[Outstanding]
+      ,[fForeignOutstanding]
+      ,[cAllocs]
+      ,[InvNumKey]
+      ,[RepID]
+      ,[LinkAccCode]
+      ,[TillID]
+      ,[CRCCheck]
+      ,[DTStamp]
+      ,[UserName]
+      ,[iTaxPeriodID]
+      ,[cReference2]
+      ,[fJCRepCost]
+      ,[iAge]
+      ,[dDateAged]
+      ,[iPostSettlementTermsID]
+      ,[PostAR_iBranchID]
+      ,[PostAR_dCreatedDate]
+      ,[PostAR_dModifiedDate]
+      ,[PostAR_iCreatedBranchID]
+      ,[PostAR_iModifiedBranchID]
+      ,[PostAR_iCreatedAgentID]
+      ,[PostAR_iModifiedAgentID]
+      ,[iTxBranchID]
+      ,[PostAR_iChangeSetID]
+      ,[iMBPropertyID]
+      ,[iMBPortionID]
+      ,[iMBServiceID]
+      ,[iMBMeterID]
+      ,[iMBPropertyPortionServiceID]
+      ,[bPBTPaid]
+      ,[iGLTaxAccountID]
+	)	
+  SELECT top 1
+       @tdate as TxDate
+      ,'ARTx' as Id
+      ,@AccountLink as AccountLink
+      ,11 as TrCodeID
+      ,@IntrestTot as Debit
+	  ,0 as Credit
+      ,0 as iCurrencyID --********
+      ,1 as fExchangeRate --********
+      ,@IntrestTot fForeignDebit --********
+	  ,0 as fForeignCredit
+      ,'Interest Calculated' as Description
+      ,0 as TaxTypeID
+      ,'Interest'+CONVERT(varchar, @tdate ,103) as Reference
+      ,'CI'+CONVERT(varchar, @tdate ,103) as Order_No
+      ,'CI'+CONVERT(varchar, @tdate ,103) as ExtOrderNum
+      ,'CI'+CONVERT(varchar, @tdate ,103) as cAuditNumber
+      ,0 as Tax_Amount
+      ,0 as fForeignTax
+      ,@Project as Project
+      ,@IntrestTot as Outstanding
+	  ,@IntrestTot as fForeignOutstanding --********
+	  ,null as cAllocs
+      ,0 as InvNumKey --********
+
+      ,0 as RepID
+      ,0 as LinkAccCode
+      ,0 as TillID
+      ,null as CRCCheck
+      ,getdate() as [DTStamp]
+      ,'Admin' as [UserName]
+      ,null as [iTaxPeriodID]
+      ,null as [cReference2]
+      ,0 as [fJCRepCost]
+      ,0 as [iAge]
+      ,@tdate as [dDateAged]
+      ,0 as [iPostSettlementTermsID]
+      ,0 as [PostAR_iBranchID]
+      ,null as [PostAR_dCreatedDate]
+      ,null as [PostAR_dModifiedDate]
+      ,null as [PostAR_iCreatedBranchID]
+      ,null as [PostAR_iModifiedBranchID]
+      ,null as [PostAR_iCreatedAgentID]
+      ,null as [PostAR_iModifiedAgentID]
+      ,0 as [iTxBranchID]
+      ,null as [PostAR_iChangeSetID]
+      ,0 as [iMBPropertyID]
+      ,0 as [iMBPortionID]
+      ,0 as [iMBServiceID]
+      ,0 as [iMBMeterID]
+      ,0 as [iMBPropertyPortionServiceID]
+      ,0 as [bPBTPaid]
+      ,0 as iGLTaxAccountID
+  FROM (select 1  as dd) as result
+  where @IntrestTot<>0 and (cast(@AccountLink as varchar)+'Interest'+CONVERT(varchar, @tdate ,103)) not in(select (cast(AccountLink as varchar)+cast(Reference as varchar)) 
+                                              from PostAR
+											  where (cast(AccountLink as varchar)+cast(Reference as varchar)) is not null
+											  and AccountLink in (select distinct AccountLink from StagingPostAR))
+
+  
+   FETCH NEXT
+   FROM @getid INTO @cid
+   END
+
+CLOSE @getid
+DEALLOCATE @getid
+
+
+
+GO
+
+
